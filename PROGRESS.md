@@ -29,7 +29,7 @@
   - 블로그 (외부): https://comeandlook.site
   - 어드민 (외부): https://comeandlook.site/wp-admin
   - 서버 접속: ssh junseok@172.30.1.55
-  - MySQL 접속: docker exec -it wordpress-db mysql -u root -p (비밀번호: rootpassword)
+  - MySQL 접속: docker exec -it wordpress-db mysql -u root -p
 - 맥 로컬 접속 시 Firefox 사용 (Chrome/Safari는 Private Network Access 정책으로 차단)
 - 조율자(coordinator) 에이전트는 규모 커지면 추가 예정
 - git 미적용 상태
