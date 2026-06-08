@@ -23,13 +23,6 @@
 - 벡터 DB 장기 기억 (글 100개 이후)
 
 ## 메모
-- WordPress: Linux 개인 서버 도커로 운영 중
-  - 블로그 (내부): http://172.30.1.55:8080
-  - 어드민 (내부): http://172.30.1.55:8080/wp-admin
-  - 블로그 (외부): https://comeandlook.site
-  - 어드민 (외부): https://comeandlook.site/wp-admin
-  - 서버 접속: ssh junseok@172.30.1.55
-  - MySQL 접속: docker exec -it wordpress-db mysql -u root -p
-- 맥 로컬 접속 시 Firefox 사용 (Chrome/Safari는 Private Network Access 정책으로 차단)
+- 블로그 (외부): https://comeandlook.site
 - 조율자(coordinator) 에이전트는 규모 커지면 추가 예정
-- git 미적용 상태
+- 서버 접속 정보는 LOCAL_NOTES.md 참고
