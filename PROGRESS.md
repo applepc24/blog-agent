@@ -14,10 +14,13 @@
 
 ## 다음
 - 글 10~20개 작성하며 시스템 안정화
+- **데이터 레이어 구축**: runs/agent_logs/posts/keywords 테이블 설계 + 에이전트 로깅 연결 (포트폴리오)
 - Google Search Console 등록 (글 10개 이후)
 - 소개 페이지 + 개인정보처리방침 페이지 작성
 - 애드센스 신청 (글 20~30개 이후)
 - cron 자동화
+- GitHub Actions CI/CD (코드 push 시 서버 자동 배포)
+- 벡터 DB 장기 기억 (글 100개 이후)
 
 ## 메모
 - WordPress: Linux 개인 서버 도커로 운영 중
