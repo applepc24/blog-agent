@@ -22,6 +22,9 @@
 - GitHub Actions CI/CD (코드 push 시 서버 자동 배포)
 - 벡터 DB 장기 기억 (글 100개 이후)
 
+## 아이디어 (미구현)
+- **라이터 자기개선 루프**: Search Console에서 방문률 상위 글을 추출 → 라이터 에이전트가 제목 패턴/글 구조/도입부 스타일/검색 의도 유형 분석 → Skill 문서 자동 생성 후 DB 저장 → 다음 글 작성 시 컨텍스트에 주입. Search Console 연결 시점(글 10개 이후)에 같이 구현 예정. (Hermes Agent의 Skill 개념 참고)
+
 ## 메모
 - 블로그 (외부): https://comeandlook.site
 - 조율자(coordinator) 에이전트는 규모 커지면 추가 예정
