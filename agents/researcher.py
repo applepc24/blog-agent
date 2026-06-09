@@ -82,9 +82,10 @@ def run(state: dict[str, Any]) -> dict[str, Any]:
     raw2 = next(block.text for block in resp2.content if hasattr(block, "text"))
     longtail_keywords = [line.strip() for line in raw2.strip().splitlines() if line.strip()][:3]
 
+    pairs = list(zip(longtail_keywords, top_cores))
     summary = "\n".join(
-        f"{i+1}. {kw} (핵심: {top_cores[i]['keyword']}, 네이버: {top_cores[i]['naver_score']}, 구글: {top_cores[i]['google_score']})"
-        for i, kw in enumerate(longtail_keywords)
+        f"{i+1}. {kw} (핵심: {core['keyword']}, 네이버: {core['naver_score']}, 구글: {core['google_score']})"
+        for i, (kw, core) in enumerate(pairs)
     )
 
     return {
