@@ -135,7 +135,12 @@ async def write_post(ctx, *, topic: str):
             return
 
     await ctx.send("글 작성 시작할게요! 1~2분 걸려요...")
-    result = await asyncio.to_thread(workflow_app.invoke, research_result)
+    try:
+        result = await asyncio.to_thread(workflow_app.invoke, research_result)
+    except Exception as e:
+        await finish_run(run_id, "fail")
+        await ctx.send(f"글 작성 실패: {e}")
+        return
 
     seo = parse_seo(result["seo"].get("raw", ""))
     draft_preview = result["draft"][:500] + "..." if len(result["draft"]) > 500 else result["draft"]
@@ -171,6 +176,10 @@ async def write_post(ctx, *, topic: str):
         await ctx.send("취소했어요!")
         return
 
+    for entry in result.get("agent_tokens", []):
+        await log_agent(run_id, entry["agent"], entry["input_tokens"],
+                        entry["output_tokens"], entry["duration_sec"])
+
     await ctx.send("업로드 중...")
     try:
         post = await asyncio.to_thread(
@@ -180,9 +189,6 @@ async def write_post(ctx, *, topic: str):
             seo.get("tags", []),
             "draft"
         )
-        for entry in result.get("agent_tokens", []):
-            await log_agent(run_id, entry["agent"], entry["input_tokens"],
-                            entry["output_tokens"], entry["duration_sec"])
         await log_post(
             run_id,
             post.get("id", 0),
@@ -216,7 +222,7 @@ async def stats(ctx, arg: str = ""):
         msg = f"**🔍 Run #{run['id']} | {run['topic']}**\n"
         msg += f"상태: {run['status']} | 소요: {duration}\n"
         for a in agents:
-            msg += f"`{a['agent']}` 입력 {a['input_tokens']}tok / 출력 {a['output_tokens']}tok / {a['duration_sec']}초\n"
+            msg += f"`{a['agent']}` 입력 {a['input_tokens'] or 0}tok / 출력 {a['output_tokens'] or 0}tok / {a['duration_sec'] or 0}초\n"
         msg += f"💰 비용: ${cost:.4f}\n"
         if post:
             msg += f"📝 제목: {post['title']}\n키워드: {post['keywords']}"
@@ -229,10 +235,9 @@ async def stats(ctx, arg: str = ""):
             return
         msg = "**📋 실행 목록**\n"
         for r in runs:
-            cost = calc_cost("writer", r["total_input"] or 0, r["total_output"] or 0)
             date = r["started_at"][:10] if r["started_at"] else "-"
             title = r["title"] or r["topic"]
-            msg += f"`#{r['id']}` {title} | {r['status']} | {date} | ${cost:.4f}\n"
+            msg += f"`#{r['id']}` {title} | {r['status']} | {date} | ${r['cost']:.4f}\n"
         await ctx.send(msg)
 
     else:

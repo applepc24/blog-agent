@@ -116,19 +116,30 @@ async def get_run_list() -> list[dict]:
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute("""
-            SELECT r.id, r.topic, r.status, r.started_at, r.finished_at,
-                   p.title,
-                   SUM(a.input_tokens) as total_input,
-                   SUM(a.output_tokens) as total_output
+            SELECT r.id, r.topic, r.status, r.started_at, r.finished_at, p.title
             FROM runs r
             LEFT JOIN posts p ON p.run_id = r.id
-            LEFT JOIN agent_logs a ON a.run_id = r.id
-            GROUP BY r.id
             ORDER BY r.id DESC
             LIMIT 20
         """) as cur:
-            rows = await cur.fetchall()
-    return [dict(r) for r in rows]
+            runs = await cur.fetchall()
+        async with db.execute("""
+            SELECT run_id, agent, SUM(input_tokens) as inp, SUM(output_tokens) as out
+            FROM agent_logs GROUP BY run_id, agent
+        """) as cur:
+            log_rows = await cur.fetchall()
+
+    logs_by_run: dict[int, list] = {}
+    for row in log_rows:
+        logs_by_run.setdefault(row["run_id"], []).append(dict(row))
+
+    result = []
+    for r in runs:
+        run_dict = dict(r)
+        run_logs = logs_by_run.get(r["id"], [])
+        run_dict["cost"] = sum(calc_cost(l["agent"], l["inp"] or 0, l["out"] or 0) for l in run_logs)
+        result.append(run_dict)
+    return result
 
 
 async def get_run_detail(run_id: int) -> dict | None:

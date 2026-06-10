@@ -38,7 +38,7 @@ RETRY_PROMPT = """
 - 한 줄에 키워드 하나씩, 번호 없이 출력
 """
 
-def _generate_core_keywords(topic: str, prompt: str) -> list[str]:
+def _generate_core_keywords(topic: str, prompt: str) -> tuple[list[str], int, int]:
     resp = client.messages.create(
         model=MODEL_HAIKU,
         max_tokens=512,
@@ -46,7 +46,8 @@ def _generate_core_keywords(topic: str, prompt: str) -> list[str]:
         messages=[{"role": "user", "content": f"주제: {topic}"}]
     )
     raw = next(block.text for block in resp.content if hasattr(block, "text"))
-    return [line.strip() for line in raw.strip().splitlines() if line.strip()][:10]
+    keywords = [line.strip() for line in raw.strip().splitlines() if line.strip()][:10]
+    return keywords, resp.usage.input_tokens, resp.usage.output_tokens
 
 
 def run(state: dict[str, Any]) -> dict[str, Any]:
@@ -56,7 +57,9 @@ def run(state: dict[str, Any]) -> dict[str, Any]:
     output_tokens = 0
 
     # 1단계: 핵심 키워드 생성
-    core_candidates = _generate_core_keywords(topic, CORE_KEYWORD_PROMPT)
+    core_candidates, inp, out = _generate_core_keywords(topic, CORE_KEYWORD_PROMPT)
+    input_tokens += inp
+    output_tokens += out
 
     # 2단계: 트렌드 점수 확인
     scored = score_keywords(core_candidates)
@@ -66,7 +69,9 @@ def run(state: dict[str, Any]) -> dict[str, Any]:
 
     # 3단계: 전부 0점이면 유사 키워드로 1회 재시도
     if not top_cores:
-        retry_candidates = _generate_core_keywords(topic, RETRY_PROMPT)
+        retry_candidates, inp, out = _generate_core_keywords(topic, RETRY_PROMPT)
+        input_tokens += inp
+        output_tokens += out
         retry_scored = score_keywords(retry_candidates)
         top_cores = [k for k in retry_scored if k["score"] > 0][:5]
 
