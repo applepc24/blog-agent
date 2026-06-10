@@ -37,10 +37,16 @@ SEO_PROMPT = """
 - 글 내용과 직접 관련된 구체적 키워드
 """
 
+def _extract_main_keyword(keywords_summary: str) -> str:
+    import re
+    match = re.search(r'핵심:\s*([^,)]+)', keywords_summary)
+    return match.group(1).strip() if match else ""
+
+
 def run(state: dict[str, Any]) -> dict[str, Any]:
     draft = state["draft"]
     keywords = state.get("keywords", [""])
-    main_keyword = keywords[0] if keywords else ""
+    main_keyword = _extract_main_keyword(keywords[0]) if keywords else ""
     t_start = time.time()
 
     response = client.messages.create(
