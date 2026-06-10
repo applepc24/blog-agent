@@ -192,11 +192,14 @@ async def write_post(ctx, *, topic: str):
         await ctx.send(f"업로드 실패: {e}")
         return
 
-    # 업로드 성공 후 로깅 (실패해도 게시에 영향 없음)
     try:
         for entry in result.get("agent_tokens", []):
             await log_agent(run_id, entry["agent"], entry["input_tokens"],
                             entry["output_tokens"], entry["duration_sec"])
+    except Exception:
+        pass
+
+    try:
         await log_post(
             run_id,
             post.get("id", 0),
