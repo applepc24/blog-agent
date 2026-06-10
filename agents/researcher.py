@@ -1,4 +1,5 @@
 import anthropic
+import time
 from typing import Any
 from config import ANTHROPIC_API_KEY, MODEL_HAIKU
 from utils.trend_analyzer import score_keywords
@@ -50,6 +51,9 @@ def _generate_core_keywords(topic: str, prompt: str) -> list[str]:
 
 def run(state: dict[str, Any]) -> dict[str, Any]:
     topic = state["topic"]
+    t_start = time.time()
+    input_tokens = 0
+    output_tokens = 0
 
     # 1단계: 핵심 키워드 생성
     core_candidates = _generate_core_keywords(topic, CORE_KEYWORD_PROMPT)
@@ -79,6 +83,9 @@ def run(state: dict[str, Any]) -> dict[str, Any]:
         system=LONGTAIL_PROMPT,
         messages=[{"role": "user", "content": f"주제: {topic}\n핵심 키워드:\n{core_list}"}]
     )
+    input_tokens += resp2.usage.input_tokens
+    output_tokens += resp2.usage.output_tokens
+
     raw2 = next(block.text for block in resp2.content if hasattr(block, "text"))
     longtail_keywords = [line.strip() for line in raw2.strip().splitlines() if line.strip()][:3]
 
@@ -92,5 +99,7 @@ def run(state: dict[str, Any]) -> dict[str, Any]:
         **state,
         "keywords": [summary],
         "low_traffic_warning": low_traffic_warning,
-        "messages": [{"role": "researcher", "content": summary}]
+        "messages": [{"role": "researcher", "content": summary}],
+        "agent_tokens": [{"agent": "researcher", "input_tokens": input_tokens,
+                          "output_tokens": output_tokens, "duration_sec": round(time.time() - t_start, 2)}]
     }

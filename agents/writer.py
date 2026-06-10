@@ -1,4 +1,5 @@
 import anthropic
+import time
 from typing import Any
 from config import ANTHROPIC_API_KEY, MODEL_SONNET
 
@@ -38,6 +39,7 @@ def run(state: dict[str, Any]) -> dict[str, Any]:
     topic = state["topic"]
     keywords = state["keywords"]
     raw_material = state.get("raw_material", "")
+    t_start = time.time()
 
     raw_section = f"\n\n준석의 경험/참고 내용:\n{raw_material}" if raw_material else ""
     prompt = f"주제: {topic}\n키워드 리서치 결과:\n{keywords[0]}{raw_section}\n\n위 내용을 바탕으로 블로그 초안을 작성해주세요."
@@ -54,5 +56,7 @@ def run(state: dict[str, Any]) -> dict[str, Any]:
     return {
         **state,
         "draft": result,
-        "messages": [{"role": "writer", "content": "초안 작성 완료"}]
+        "messages": [{"role": "writer", "content": "초안 작성 완료"}],
+        "agent_tokens": [{"agent": "writer", "input_tokens": response.usage.input_tokens,
+                          "output_tokens": response.usage.output_tokens, "duration_sec": round(time.time() - t_start, 2)}]
     }

@@ -1,4 +1,5 @@
 import anthropic
+import time
 from typing import Any
 from config import ANTHROPIC_API_KEY, MODEL_HAIKU
 from utils.seo_parser import parse_seo
@@ -40,6 +41,7 @@ def run(state: dict[str, Any]) -> dict[str, Any]:
     draft = state["draft"]
     keywords = state.get("keywords", [""])
     main_keyword = keywords[0] if keywords else ""
+    t_start = time.time()
 
     response = client.messages.create(
         model=MODEL_HAIKU,
@@ -55,5 +57,7 @@ def run(state: dict[str, Any]) -> dict[str, Any]:
     return {
         **state,
         "seo": {"raw": result, "parsed": parsed, "title_check": title_check},
-        "messages": [{"role": "seo", "content": result}]
+        "messages": [{"role": "seo", "content": result}],
+        "agent_tokens": [{"agent": "seo", "input_tokens": response.usage.input_tokens,
+                          "output_tokens": response.usage.output_tokens, "duration_sec": round(time.time() - t_start, 2)}]
     }

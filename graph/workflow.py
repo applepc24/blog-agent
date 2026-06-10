@@ -12,6 +12,7 @@ class BlogState(TypedDict):
     messages: Annotated[list, operator.add]
     next: str
     low_traffic_warning: bool
+    agent_tokens: Annotated[list, operator.add]
 
 AGENTS = ["researcher", "writer", "seo", "FINISH"]
 
