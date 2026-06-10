@@ -16,14 +16,19 @@
 - 테마 변경 (Twenty Twenty-Five → Astra)
 - 소개 페이지 작성
 - 카테고리 정리 (개발/데이터, 다이어트/건강)
+- RankMath SEO 플러그인 설치
+- Google Search Console 등록 + 사이트맵 제출
+- 네이버 서치어드바이저 등록 + 사이트맵 제출
 
 ## 다음
 - 글 10~20개 작성하며 시스템 안정화
 - **데이터 레이어 구축**: runs/agent_logs/posts/keywords 테이블 설계 + 에이전트 로깅 연결 (포트폴리오)
-- Google Search Console 등록 (글 10개 이후)
+- **편집장 모델 변경**: Opus → Sonnet (대화/검토는 Sonnet으로 충분)
+- Google Search Console 데이터 확인 (글 10개 이후)
 - 개인정보처리방침 페이지 작성
 - 애드센스 신청 (글 20~30개 이후)
 - cron 자동화
+- **조율자(coordinator) 구현**: Opus 사용, 주간 리포트 해석 + 다음 글 방향 전략 제안 (GSC 연결 후)
 - 벡터 DB 장기 기억 (글 100개 이후)
 
 ## 아이디어 (미구현)
