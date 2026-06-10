@@ -19,9 +19,8 @@
 - RankMath SEO 플러그인 설치
 - Google Search Console 등록 + 사이트맵 제출
 - 네이버 서치어드바이저 등록 + 사이트맵 제출
-
-## 완료 (추가)
 - 데이터 레이어 구축: runs/agent_logs/posts 테이블 + 에이전트 토큰/비용 로깅 + !통계 명령어
+- 코드 버그 수정 (4라운드): 업로드/로깅 순서 정리, log_agent·log_post 독립 try 분리, SEO 제목 점수 키워드 오탐 수정, analytics.py GROUP BY 비결정적 title 수정
 
 ## 다음
 - 글 10~20개 작성하며 시스템 안정화
