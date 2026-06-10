@@ -45,8 +45,8 @@ def _extract_main_keyword(keywords_summary: str) -> str:
 
 def run(state: dict[str, Any]) -> dict[str, Any]:
     draft = state["draft"]
-    keywords = state.get("keywords", [""])
-    main_keyword = _extract_main_keyword(keywords[0]) if keywords else ""
+    keywords = state.get("keywords", [])
+    main_keyword = _extract_main_keyword(keywords[0]) if keywords and keywords[0] else ""
     t_start = time.time()
 
     response = client.messages.create(

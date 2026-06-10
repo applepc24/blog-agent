@@ -176,12 +176,12 @@ async def write_post(ctx, *, topic: str):
         await ctx.send("취소했어요!")
         return
 
-    for entry in result.get("agent_tokens", []):
-        await log_agent(run_id, entry["agent"], entry["input_tokens"],
-                        entry["output_tokens"], entry["duration_sec"])
-
-    await ctx.send("업로드 중...")
     try:
+        for entry in result.get("agent_tokens", []):
+            await log_agent(run_id, entry["agent"], entry["input_tokens"],
+                            entry["output_tokens"], entry["duration_sec"])
+
+        await ctx.send("업로드 중...")
         post = await asyncio.to_thread(
             upload_post,
             seo.get("title") or topic,

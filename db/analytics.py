@@ -119,6 +119,7 @@ async def get_run_list() -> list[dict]:
             SELECT r.id, r.topic, r.status, r.started_at, r.finished_at, p.title
             FROM runs r
             LEFT JOIN posts p ON p.run_id = r.id
+            GROUP BY r.id
             ORDER BY r.id DESC
             LIMIT 20
         """) as cur:
