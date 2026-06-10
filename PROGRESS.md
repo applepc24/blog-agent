@@ -20,9 +20,11 @@
 - Google Search Console 등록 + 사이트맵 제출
 - 네이버 서치어드바이저 등록 + 사이트맵 제출
 
+## 완료 (추가)
+- 데이터 레이어 구축: runs/agent_logs/posts 테이블 + 에이전트 토큰/비용 로깅 + !통계 명령어
+
 ## 다음
 - 글 10~20개 작성하며 시스템 안정화
-- **데이터 레이어 구축**: runs/agent_logs/posts/keywords 테이블 설계 + 에이전트 로깅 연결 (포트폴리오)
 - **편집장 모델 변경**: Opus → Sonnet (대화/검토는 Sonnet으로 충분)
 - Google Search Console 데이터 확인 (글 10개 이후)
 - 개인정보처리방침 페이지 작성
