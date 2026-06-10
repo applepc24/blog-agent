@@ -116,7 +116,7 @@ async def get_run_list() -> list[dict]:
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute("""
-            SELECT r.id, r.topic, r.status, r.started_at, r.finished_at, p.title
+            SELECT r.id, r.topic, r.status, r.started_at, r.finished_at, MAX(p.title) as title
             FROM runs r
             LEFT JOIN posts p ON p.run_id = r.id
             GROUP BY r.id

@@ -176,12 +176,8 @@ async def write_post(ctx, *, topic: str):
         await ctx.send("취소했어요!")
         return
 
+    await ctx.send("업로드 중...")
     try:
-        for entry in result.get("agent_tokens", []):
-            await log_agent(run_id, entry["agent"], entry["input_tokens"],
-                            entry["output_tokens"], entry["duration_sec"])
-
-        await ctx.send("업로드 중...")
         post = await asyncio.to_thread(
             upload_post,
             seo.get("title") or topic,
@@ -189,6 +185,18 @@ async def write_post(ctx, *, topic: str):
             seo.get("tags", []),
             "draft"
         )
+        await finish_run(run_id, "success")
+        await ctx.send(f"WordPress에 저장했어요!\n{post.get('link', '(URL 없음)')}")
+    except Exception as e:
+        await finish_run(run_id, "fail")
+        await ctx.send(f"업로드 실패: {e}")
+        return
+
+    # 업로드 성공 후 로깅 (실패해도 게시에 영향 없음)
+    try:
+        for entry in result.get("agent_tokens", []):
+            await log_agent(run_id, entry["agent"], entry["input_tokens"],
+                            entry["output_tokens"], entry["duration_sec"])
         await log_post(
             run_id,
             post.get("id", 0),
@@ -196,11 +204,8 @@ async def write_post(ctx, *, topic: str):
             result["keywords"][0] if result["keywords"] else "",
             seo.get("tags", [])
         )
-        await finish_run(run_id, "success")
-        await ctx.send(f"WordPress에 저장했어요!\n{post.get('link', '(URL 없음)')}")
-    except Exception as e:
-        await finish_run(run_id, "fail")
-        await ctx.send(f"업로드 실패: {e}")
+    except Exception:
+        pass
 
 @bot.command(name="통계")
 async def stats(ctx, arg: str = ""):
