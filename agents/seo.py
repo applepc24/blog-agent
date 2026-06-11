@@ -49,10 +49,12 @@ def run(state: dict[str, Any]) -> dict[str, Any]:
     main_keyword = _extract_main_keyword(keywords[0]) if keywords and keywords[0] else ""
     t_start = time.time()
 
+    keyword_instruction = f"\n\n포커스 키워드: {main_keyword}\n제목에 이 키워드를 반드시 포함하세요." if main_keyword else ""
+
     response = client.messages.create(
         model=MODEL_HAIKU,
         max_tokens=512,
-        system=SEO_PROMPT,
+        system=SEO_PROMPT + keyword_instruction,
         messages=[{"role": "user", "content": f"초안:\n{draft[:8000]}"}]
     )
 
