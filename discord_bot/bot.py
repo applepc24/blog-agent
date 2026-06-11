@@ -215,7 +215,8 @@ async def write_post(ctx, *, topic: str = ""):
             seo.get("title") or topic,
             result["draft"],
             seo.get("tags", []),
-            "draft"
+            "draft",
+            result["keywords"][0] if result["keywords"] else ""
         )
         await finish_run(run_id, "success")
         await ctx.send(f"WordPress에 저장했어요!\n{post.get('link', '(URL 없음)')}")
