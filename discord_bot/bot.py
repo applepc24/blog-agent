@@ -76,8 +76,40 @@ async def help_command(ctx):
     await ctx.send(msg)
 
 @bot.command(name="글쓰기")
-async def write_post(ctx, *, topic: str):
-    await ctx.send(f"📝 **'{topic}'** 주제로 글 쓸게요!\n경험이나 참고할 내용 있으면 보내줘요. (없으면 `없음`)")
+async def write_post(ctx, *, topic: str = ""):
+    if not topic:
+        ideas = await get_pending_ideas()
+        if not ideas:
+            await ctx.send("장독대가 비어있어요. 주제를 직접 입력해줘요.\n예: `!글쓰기 파이썬 비동기 처리`")
+            return
+        msg = "**장독대 글감 목록**\n"
+        for i, idea in enumerate(ideas, 1):
+            msg += f"`{i}` {idea['content']} (#{idea['id']})\n"
+        msg += "\n번호 입력하면 그 글감으로 쓸게요. (취소: `취소`)"
+        await ctx.send(msg)
+
+        def msg_check_pick(m):
+            return m.author == ctx.author and m.channel == ctx.channel
+
+        try:
+            pick = await bot.wait_for("message", timeout=60.0, check=msg_check_pick)
+        except asyncio.TimeoutError:
+            await ctx.send("60초 초과로 취소됐어요.")
+            return
+
+        if pick.content.strip() == "취소":
+            await ctx.send("취소했어요!")
+            return
+
+        if not pick.content.strip().isdigit() or not (1 <= int(pick.content.strip()) <= len(ideas)):
+            await ctx.send("올바른 번호가 아니에요. 취소할게요.")
+            return
+
+        selected = ideas[int(pick.content.strip()) - 1]
+        topic = selected["content"]
+        await ctx.send(f"📝 **'{topic}'** 글감으로 시작할게요!")
+
+    await ctx.send(f"경험이나 참고할 내용 있으면 보내줘요. (없으면 `없음`)")
 
     def msg_check(m):
         return m.author == ctx.author and m.channel == ctx.channel
