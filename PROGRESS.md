@@ -8,19 +8,16 @@
 - 9단계: 배포 (comeandlook.site, Nginx, Let's Encrypt SSL)
 - SEO 에이전트 개선 (draft 8000자, 프롬프트 보강, JSON 파싱 안전화, 제목 점수화)
 - 리서처 개선 (0점 시 자동 재시도 → 그래도 0점이면 디스코드 경고 후 확인)
-- 블로그 첫 글 게시 완료
 - 서버 배포: 디스코드 봇 Linux 서버에서 systemd 서비스로 24시간 실행
+- GitHub Actions CI/CD 구축 (push 시 서버 자동 배포)
 - SEO 제목 스타일 다양화 (패턴 반복 방지)
-- 리서처 IndexError 버그 수정
-- GitHub Actions CI/CD 구축 (push 시 서버 자동 배포) ✅
-- 테마 변경 (Twenty Twenty-Five → Astra)
-- 소개 페이지 작성
-- 카테고리 정리 (개발/데이터, 다이어트/건강)
-- RankMath SEO 플러그인 설치
-- Google Search Console 등록 + 사이트맵 제출
-- 네이버 서치어드바이저 등록 + 사이트맵 제출
+- WordPress 블로그 개설 및 세팅 (Astra 테마, 카테고리, 소개 페이지, RankMath, TOC 플러그인)
+- Google Search Console + 네이버 서치어드바이저 등록 및 사이트맵 제출
 - 데이터 레이어 구축: runs/agent_logs/posts 테이블 + 에이전트 토큰/비용 로깅 + !통계 명령어
-- 코드 버그 수정 (4라운드): 업로드/로깅 순서 정리, log_agent·log_post 독립 try 분리, SEO 제목 점수 키워드 오탐 수정, analytics.py GROUP BY 비결정적 title 수정
+- !글쓰기 주제 없이 치면 장독대 자동 목록 표시 후 번호 선택
+- RankMath 포커스 키워드 자동 전송 + SEO 에이전트 프롬프트 주입
+- 글 5개 게시
+- 초안 수정 기능: ✏️ 반응으로 수정 요청 → 라이터(Sonnet) 재작성 루프 (✅/✏️/❌)
 
 ## 다음
 - 글 10~20개 작성하며 시스템 안정화
