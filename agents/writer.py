@@ -35,6 +35,35 @@ WRITER_PROMPT = """
 - 준석의 경험/참고 내용이 제공되면 반드시 글에 자연스럽게 녹여낼 것
 """
 
+def revise(draft: str, feedback: str, topic: str) -> dict[str, Any]:
+    t_start = time.time()
+    prompt = f"""다음은 '{topic}' 주제의 블로그 초안이에요.
+
+=== 현재 초안 ===
+{draft}
+
+=== 수정 요청 ===
+{feedback}
+
+수정 요청을 반영해서 초안을 다시 작성해주세요. 수정이 필요 없는 부분은 그대로 유지하세요."""
+
+    response = client.messages.create(
+        model=MODEL_SONNET,
+        max_tokens=4096,
+        system=WRITER_PROMPT,
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    result = next(block.text for block in response.content if hasattr(block, "text"))
+
+    return {
+        "draft": result,
+        "input_tokens": response.usage.input_tokens,
+        "output_tokens": response.usage.output_tokens,
+        "duration_sec": round(time.time() - t_start, 2)
+    }
+
+
 def run(state: dict[str, Any]) -> dict[str, Any]:
     topic = state["topic"]
     keywords = state["keywords"]

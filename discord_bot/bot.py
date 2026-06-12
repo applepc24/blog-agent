@@ -186,34 +186,81 @@ async def write_post(ctx, *, topic: str = ""):
         f"태그: {', '.join(seo.get('tags', []))}"
     )
     
-    confirm_msg = await ctx.send("WordPress에 올릴까요? (draft로 저장)")
-    await confirm_msg.add_reaction("✅")
-    await confirm_msg.add_reaction("❌")
+    from agents import writer as writer_agent
+    current_draft = result["draft"]
 
-    def check(reaction, user):
-        return (
-            user == ctx.author
-            and str(reaction.emoji) in ["✅", "❌"]
-            and reaction.message.id == confirm_msg.id
-        )
-    try:
-        reaction, _ = await bot.wait_for("reaction_add", timeout=60.0, check=check)
-    except asyncio.TimeoutError:
-        await finish_run(run_id, "cancelled")
-        await ctx.send("60초 초과로 취소됐어요.")
-        return
-    
-    if str(reaction.emoji) == "❌":
-        await finish_run(run_id, "cancelled")
-        await ctx.send("취소했어요!")
-        return
+    while True:
+        confirm_msg = await ctx.send("WordPress에 올릴까요? (draft로 저장)\n✅ 올리기  ✏️ 수정  ❌ 취소")
+        await confirm_msg.add_reaction("✅")
+        await confirm_msg.add_reaction("✏️")
+        await confirm_msg.add_reaction("❌")
+
+        def check(reaction, user, _msg=confirm_msg):
+            return (
+                user == ctx.author
+                and str(reaction.emoji) in ["✅", "✏️", "❌"]
+                and reaction.message.id == _msg.id
+            )
+
+        try:
+            reaction, _ = await bot.wait_for("reaction_add", timeout=300.0, check=check)
+        except asyncio.TimeoutError:
+            await finish_run(run_id, "cancelled")
+            await ctx.send("5분 초과로 취소됐어요.")
+            return
+
+        emoji = str(reaction.emoji)
+
+        if emoji == "❌":
+            await finish_run(run_id, "cancelled")
+            await ctx.send("취소했어요!")
+            return
+
+        elif emoji == "✏️":
+            await ctx.send("어떤 부분 수정할까요? (예: 결론 더 따뜻하게, 도입부 짧게)")
+
+            def feedback_check(m):
+                return m.author == ctx.author and m.channel == ctx.channel
+
+            try:
+                feedback_msg = await bot.wait_for("message", timeout=300.0, check=feedback_check)
+            except asyncio.TimeoutError:
+                await ctx.send("5분 초과로 취소됐어요.")
+                return
+
+            await ctx.send("✍️ 수정 중... 30초~1분 걸려요.")
+            try:
+                revise_result = await asyncio.to_thread(
+                    writer_agent.revise,
+                    current_draft,
+                    feedback_msg.content,
+                    topic
+                )
+            except Exception as e:
+                await ctx.send(f"수정 실패: {e}\n다시 시도해볼까요?")
+                continue
+
+            current_draft = revise_result["draft"]
+            result["agent_tokens"].append({
+                "agent": "writer_revise",
+                "input_tokens": revise_result["input_tokens"],
+                "output_tokens": revise_result["output_tokens"],
+                "duration_sec": revise_result["duration_sec"]
+            })
+
+            draft_preview = current_draft[:500] + "..." if len(current_draft) > 500 else current_draft
+            await ctx.send(f"**📝 수정된 초안 미리보기**\n{draft_preview}")
+            continue
+
+        else:  # ✅
+            break
 
     await ctx.send("업로드 중...")
     try:
         post = await asyncio.to_thread(
             upload_post,
             seo.get("title") or topic,
-            result["draft"],
+            current_draft,
             seo.get("tags", []),
             "draft",
             result["keywords"][0] if result["keywords"] else ""
