@@ -6,7 +6,7 @@ from db.jangdokdae import init_db, add_idea, get_pending_ideas
 from db.analytics import init_analytics_db, start_run, finish_run, log_post, log_agent, get_summary, get_run_list, get_run_detail, calc_cost
 from agents.editor import chat
 from graph.workflow import app as workflow_app
-from wordpress import upload_post
+from wordpress import upload_post, update_post, delete_post
 from utils.seo_parser import parse_seo
 
 intents = discord.Intents.default()
@@ -175,22 +175,47 @@ async def write_post(ctx, *, topic: str = ""):
         return
 
     seo = parse_seo(result["seo"].get("raw", ""))
-    draft_preview = result["draft"][:500] + "..." if len(result["draft"]) > 500 else result["draft"]
 
     await ctx.send(f"**🔍 황금 키워드**\n{result['keywords'][0]}")
-    await ctx.send(f"**📝 초안 미리보기**\n{draft_preview}")
     await ctx.send(
         f"**📊 SEO 결과**\n"
         f"제목: {seo.get('title', '(없음)')}\n"
         f"메타: {seo.get('meta_description', '(없음)')}\n"
         f"태그: {', '.join(seo.get('tags', []))}"
     )
-    
+
     from agents import writer as writer_agent
     current_draft = result["draft"]
+    current_title = seo.get("title") or topic
+    current_tags = seo.get("tags", [])
+    focus_keyword = result["keywords"][0] if result["keywords"] else ""
+
+    # 초안을 WP draft로 먼저 업로드
+    await ctx.send("📄 WordPress draft로 저장 중...")
+    try:
+        post = await asyncio.to_thread(
+            upload_post,
+            current_title,
+            current_draft,
+            current_tags,
+            "draft",
+            focus_keyword
+        )
+    except Exception as e:
+        await finish_run(run_id, "fail")
+        await ctx.send(f"업로드 실패: {e}")
+        return
+
+    post_id = post.get("id")
+    admin_link = f"https://comeandlook.site/wp-admin/post.php?post={post_id}&action=edit"
 
     while True:
-        confirm_msg = await ctx.send("WordPress에 올릴까요? (draft로 저장)\n✅ 올리기  ✏️ 수정  ❌ 취소")
+        confirm_msg = await ctx.send(
+            f"**초안이 draft로 저장됐어요.**\n"
+            f"👉 {admin_link}\n\n"
+            f"전체 글 읽어보고 결정해주세요. (30분 대기)\n"
+            f"✅ 발행  ✏️ 수정  ❌ 삭제"
+        )
         await confirm_msg.add_reaction("✅")
         await confirm_msg.add_reaction("✏️")
         await confirm_msg.add_reaction("❌")
@@ -203,17 +228,21 @@ async def write_post(ctx, *, topic: str = ""):
             )
 
         try:
-            reaction, _ = await bot.wait_for("reaction_add", timeout=300.0, check=check)
+            reaction, _ = await bot.wait_for("reaction_add", timeout=1800.0, check=check)
         except asyncio.TimeoutError:
             await finish_run(run_id, "cancelled")
-            await ctx.send("5분 초과로 취소됐어요.")
+            await ctx.send(f"30분 초과로 취소됐어요. draft는 WP에 남아있어요.\n{admin_link}")
             return
 
         emoji = str(reaction.emoji)
 
         if emoji == "❌":
+            try:
+                await asyncio.to_thread(delete_post, post_id)
+            except Exception:
+                pass
             await finish_run(run_id, "cancelled")
-            await ctx.send("취소했어요!")
+            await ctx.send("draft 삭제했어요!")
             return
 
         elif emoji == "✏️":
@@ -248,29 +277,19 @@ async def write_post(ctx, *, topic: str = ""):
                 "duration_sec": revise_result["duration_sec"]
             })
 
-            draft_preview = current_draft[:500] + "..." if len(current_draft) > 500 else current_draft
-            await ctx.send(f"**📝 수정된 초안 미리보기**\n{draft_preview}")
+            # WP draft 내용 업데이트
+            try:
+                await asyncio.to_thread(update_post, post_id, content=current_draft)
+                await ctx.send(f"✅ WP draft 업데이트했어요. 다시 읽어보세요.\n👉 {admin_link}")
+            except Exception as e:
+                await ctx.send(f"WP 업데이트 실패: {e}")
             continue
 
-        else:  # ✅
+        else:  # ✅ 확정
             break
 
-    await ctx.send("업로드 중...")
-    try:
-        post = await asyncio.to_thread(
-            upload_post,
-            seo.get("title") or topic,
-            current_draft,
-            seo.get("tags", []),
-            "draft",
-            result["keywords"][0] if result["keywords"] else ""
-        )
-        await finish_run(run_id, "success")
-        await ctx.send(f"WordPress에 저장했어요!\n{post.get('link', '(URL 없음)')}")
-    except Exception as e:
-        await finish_run(run_id, "fail")
-        await ctx.send(f"업로드 실패: {e}")
-        return
+    await finish_run(run_id, "success")
+    await ctx.send(f"초안 확정했어요! WP에서 직접 발행해주세요.\n👉 {admin_link}")
 
     try:
         for entry in result.get("agent_tokens", []):
