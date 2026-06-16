@@ -31,7 +31,7 @@ def supervisor_node(state: BlogState) -> BlogState:
     else:
         next_agent = "FINISH"
     
-    return {**state, "next": next_agent}
+    return {"next": next_agent}
 
 
 def researcher_node(state: BlogState) -> dict:  # type: ignore[override]
