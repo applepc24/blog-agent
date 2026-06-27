@@ -9,7 +9,7 @@ def upload_post(title: str, content: str, tags: list[str] = [], status: str = "d
 
     data = {
         "title": title,
-        "content": md.markdown(content),
+        "content": md.markdown(content, extensions=["fenced_code", "tables"]),
         "status": status,
         "tags_input": ",".join(tags),
         "meta": {
@@ -32,7 +32,7 @@ def update_post(post_id: int, status: str = None, title: str = None, content: st
     if title is not None:
         data["title"] = title
     if content is not None:
-        data["content"] = md.markdown(content)
+        data["content"] = md.markdown(content, extensions=["fenced_code", "tables"])
     if tags is not None:
         data["tags_input"] = ",".join(tags)
     if focus_keyword is not None:
