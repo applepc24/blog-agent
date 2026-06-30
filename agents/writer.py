@@ -39,17 +39,20 @@ def revise(draft: str, feedback: str, topic: str) -> dict[str, Any]:
     t_start = time.time()
     prompt = f"""다음은 '{topic}' 주제의 블로그 초안이에요.
 
-=== 현재 초안 ===
-{draft}
+아래 수정 요청을 **반드시 모두** 반영해서 전체 초안을 다시 작성해주세요.
+수정 요청에 해당하는 부분은 확실하게 바꿔주세요. 애매하게 조금만 바꾸면 안 돼요.
 
 === 수정 요청 ===
 {feedback}
 
-수정 요청을 반영해서 초안을 다시 작성해주세요. 수정이 필요 없는 부분은 그대로 유지하세요."""
+=== 현재 초안 ===
+{draft}
+
+위 수정 요청을 전부 반영한 완성된 초안 전체를 출력해주세요."""
 
     response = client.messages.create(
         model=MODEL_SONNET,
-        max_tokens=4096,
+        max_tokens=8192,
         system=WRITER_PROMPT,
         messages=[{"role": "user", "content": prompt}]
     )

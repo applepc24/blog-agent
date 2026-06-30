@@ -280,7 +280,12 @@ async def write_post(ctx, *, topic: str = ""):
             # WP draft 내용 업데이트
             try:
                 await asyncio.to_thread(update_post, post_id, content=current_draft)
-                await ctx.send(f"✅ WP draft 업데이트했어요. 다시 읽어보세요.\n👉 {admin_link}")
+                preview = current_draft[:300].replace("\n", " ").strip()
+                await ctx.send(
+                    f"✅ WP draft 업데이트 완료!\n"
+                    f"```\n{preview}...\n```\n"
+                    f"👉 전체 확인: {admin_link}"
+                )
             except Exception as e:
                 await ctx.send(f"WP 업데이트 실패: {e}")
             continue
