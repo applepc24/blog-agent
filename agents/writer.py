@@ -78,7 +78,7 @@ def run(state: dict[str, Any]) -> dict[str, Any]:
 
     response = client.messages.create(
         model=MODEL_SONNET,
-        max_tokens=4096,
+        max_tokens=8192,
         system=WRITER_PROMPT,
         messages=[{"role": "user", "content": prompt}]
     )
